@@ -1,9 +1,11 @@
+import json
 import joblib
 import warnings
-from xgboost import XGBClassifier
 from split_data import load_data, delete_file
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline, FeatureUnion
+from sklearn.ensemble import GradientBoostingClassifier
+from utilities.evaluation import calculate_metrics, metrics_summary
 from utilities.custom_pipeline import ColumnSelector, ConvertDtypes, \
     GetDummies, GetDataFrame, BooleanTransformation
 from utilities.config import feature_columns_dtypes, label_column_dtype, to_boolean, label_column, \
@@ -35,21 +37,35 @@ def define_preprocessing_pipeline():
     return preprocessor
 
 
-def train(transformer_pipeline, train_data, validation_data):
+def train(transformer_pipeline, train_data):
     """
 
     :param transformer_pipeline:
     :param train_data:
-    :param validation_data:
     :return:
     """
     train_label = train_data.pop(label_column)
-    validation_label = validation_data.pop(label_column)
-    evaluation_set = [(validation_data, validation_label)]
     model = Pipeline([('preprocessor', transformer_pipeline),
-                      ('estimator', XGBClassifier(random_state=42))])
-    model.fit(train_data, train_label, eval_metric='error', eval_set=evaluation_set, verbose=True)
+                      ('estimator', GradientBoostingClassifier(random_state=42))])
+    model.fit(train_data, train_label)
     return model
+
+
+def prediction(model, validation_data):
+    """
+
+    :param model:
+    :param validation_data:
+    :return:
+    """
+    validation_label = validation_data.pop(label_column)
+    y_pred = model.predict(validation_data)
+    return y_pred, validation_label
+
+
+def save_metrics(metrics: dict, path: str):
+    with open(path, 'w') as file_path:
+        json.dump(metrics, file_path)
 
 
 def serialize_model(model, model_path: str):
@@ -57,18 +73,17 @@ def serialize_model(model, model_path: str):
 
 
 def main():
-    """
-    Entrena un modelo y guarda este en un objeto serializado para hacer una inferencia posteriormente
-    :return:
-    """
-    train_data = load_data(filename='data/train.csv',
+    train_data = load_data(filename='data/train.csv', sep=';',
                            dtype=feature_columns_dtypes.update(label_column_dtype))
-    validation_data = load_data(filename='data/validation.csv',
+    validation_data = load_data(filename='data/validation.csv', sep=';',
                                 dtype=feature_columns_dtypes.update(label_column_dtype))
     preprocessor = define_preprocessing_pipeline()
-    model = train(transformer_pipeline=preprocessor,
-                  train_data=train_data, validation_data=validation_data)
-    serialize_model(model=model, model_path='models/xgboost.pkl')
+    model = train(transformer_pipeline=preprocessor, train_data=train_data)
+    serialize_model(model=model, model_path='models/gboosting.pkl')
+    y_pred, label = prediction(model=model, validation_data=validation_data)
+    metrics = calculate_metrics(y_true=label, y_pred=y_pred)
+    save_metrics(metrics, path='metrics/metrics.json')
+    metrics_summary(metrics=metrics)
     delete_file(filename='data/Churn_Modelling.csv')
     delete_file(filename='data/train.csv')
     delete_file(filename='data/validation.csv')
