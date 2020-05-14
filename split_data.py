@@ -22,7 +22,7 @@ def load_data(filename: str, **kwargs) -> pd.DataFrame:
     :param filename:
     :return: pd.DataFrame
     """
-    df = pd.read_csv(filename, dtype=feature_columns_dtypes.update(label_column_dtype), **kwargs)
+    df = pd.read_csv(filename, **kwargs)
     logger.info('Se han cargado los datos correctamente.')
     return df
 
@@ -91,7 +91,7 @@ def delete_file(filename: str):
 
 def main():
     download_from_s3(bucket=bucket, key=f'{input_filename}', dest_pathname=f'data/{input_filename}')
-    df = load_data(filename=f'data/{input_filename}')
+    df = load_data(filename=f'data/{input_filename}', dtype=feature_columns_dtypes.update(label_column_dtype))
     train_data, validation_data, test_data, train_label, validation_label, test_label = split_data(df=df,
                                                                                                    label=label_column,
                                                                                                    stratify=True)
@@ -101,10 +101,10 @@ def main():
     export_data(df=validation_df, path='data/validation.csv', with_header=True)
     export_data(df=test_data, path='data/test.csv', with_header=True)
     export_data(df=test_label, path='data/test_label.csv', with_header=True)
-    upload_to_s3(filename='data/train.csv', bucket=bucket, key=f'{key}/train')
-    upload_to_s3(filename='data/validation.csv', bucket=bucket, key=f'{key}/validation')
-    upload_to_s3(filename='data/test.csv', bucket=bucket, key=f'{key}/test')
-    upload_to_s3(filename='data/test_label.csv', bucket=bucket, key=f'{key}/test')
+    upload_to_s3(filename='data/train.csv', bucket=bucket, key=f'{key}/train.csv')
+    upload_to_s3(filename='data/validation.csv', bucket=bucket, key=f'{key}/validation.csv')
+    upload_to_s3(filename='data/test.csv', bucket=bucket, key=f'{key}/test.csv')
+    upload_to_s3(filename='data/test_label.csv', bucket=bucket, key=f'{key}/test_label.csv')
     logger.info('El proceso ha finalizado exitosamente')
     return None
 
