@@ -16,6 +16,9 @@ Inmediatamente se descargará el proyecto a su computador, y procederá a crear 
 3. models/
 4. results/
 
+Adicional se debe agregar un archivo aws_keys.py en la carpeta de utilities y se crean dos variables con el access_key_id y el access_key que se 
+van a utilizar para descargar y cargar datos desde S3.
+
 Después simplemente vamos a construir la imagen de Docker. La imagen de Docker hace lo siguiente:
 
 1. Parte los datos en entrenamiento, validacion, y prueba que se toman como los datos nuevos.
