@@ -8,7 +8,7 @@ from split_data import export_data, load_data, delete_file
 
 def load_model(model_path: str):
     """
-
+    load serialize model
     :param model_path:
     :return:
     """
