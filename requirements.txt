@@ -1,6 +1,6 @@
 boto3==1.13.9
 botocore==1.16.9
-joblib==0.14.1
+joblib==1.2.0
 numpy==1.18.4
 pandas==1.0.3
 s3fs==0.4.2
