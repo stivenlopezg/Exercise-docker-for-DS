@@ -6,4 +6,4 @@ pandas==1.0.3
 s3fs==0.4.2
 s3transfer==0.3.3
 scikit-learn==0.23.0
-scipy==1.4.1
+scipy==1.10.0
